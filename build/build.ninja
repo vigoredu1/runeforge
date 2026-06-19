@@ -11,7 +11,7 @@
 # =============================================================================
 
 # =============================================================================
-# Project: Project
+# Project: runeforge
 # Configurations: Debug
 # =============================================================================
 
@@ -40,6 +40,59 @@ include CMakeFiles/rules.ninja
 # Logical path to working directory; prefix for absolute paths.
 
 cmake_ninja_workdir = /home/click-builder/runeforge/build/
+# =============================================================================
+# Object build statements for EXECUTABLE target runeforge
+
+
+#############################################
+# Order-only phony target for runeforge
+
+build cmake_object_order_depends_target_runeforge: phony || CMakeFiles/runeforge.dir
+
+build CMakeFiles/runeforge.dir/src/main.cpp.o: CXX_COMPILER__runeforge_unscanned_Debug /home/click-builder/runeforge/src/main.cpp || cmake_object_order_depends_target_runeforge
+  DEP_FILE = CMakeFiles/runeforge.dir/src/main.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  INCLUDES = -I/home/click-builder/runeforge/src
+  OBJECT_DIR = CMakeFiles/runeforge.dir
+  OBJECT_FILE_DIR = CMakeFiles/runeforge.dir/src
+
+build CMakeFiles/runeforge.dir/src/lexer.cpp.o: CXX_COMPILER__runeforge_unscanned_Debug /home/click-builder/runeforge/src/lexer.cpp || cmake_object_order_depends_target_runeforge
+  DEP_FILE = CMakeFiles/runeforge.dir/src/lexer.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  INCLUDES = -I/home/click-builder/runeforge/src
+  OBJECT_DIR = CMakeFiles/runeforge.dir
+  OBJECT_FILE_DIR = CMakeFiles/runeforge.dir/src
+
+build CMakeFiles/runeforge.dir/src/parser.cpp.o: CXX_COMPILER__runeforge_unscanned_Debug /home/click-builder/runeforge/src/parser.cpp || cmake_object_order_depends_target_runeforge
+  DEP_FILE = CMakeFiles/runeforge.dir/src/parser.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  INCLUDES = -I/home/click-builder/runeforge/src
+  OBJECT_DIR = CMakeFiles/runeforge.dir
+  OBJECT_FILE_DIR = CMakeFiles/runeforge.dir/src
+
+build CMakeFiles/runeforge.dir/src/interpreter.cpp.o: CXX_COMPILER__runeforge_unscanned_Debug /home/click-builder/runeforge/src/interpreter.cpp || cmake_object_order_depends_target_runeforge
+  DEP_FILE = CMakeFiles/runeforge.dir/src/interpreter.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  INCLUDES = -I/home/click-builder/runeforge/src
+  OBJECT_DIR = CMakeFiles/runeforge.dir
+  OBJECT_FILE_DIR = CMakeFiles/runeforge.dir/src
+
+
+# =============================================================================
+# Link build statements for EXECUTABLE target runeforge
+
+
+#############################################
+# Link the executable runeforge
+
+build runeforge: CXX_EXECUTABLE_LINKER__runeforge_Debug CMakeFiles/runeforge.dir/src/main.cpp.o CMakeFiles/runeforge.dir/src/lexer.cpp.o CMakeFiles/runeforge.dir/src/parser.cpp.o CMakeFiles/runeforge.dir/src/interpreter.cpp.o
+  FLAGS = -g
+  OBJECT_DIR = CMakeFiles/runeforge.dir
+  POST_BUILD = :
+  PRE_LINK = :
+  TARGET_FILE = runeforge
+  TARGET_PDB = runeforge.dbg
+
 
 #############################################
 # Utility command for edit_cache
@@ -74,12 +127,7 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 #############################################
 # Folder: /home/click-builder/runeforge/build
 
-build all: phony
-
-# =============================================================================
-# Unknown Build Time Dependencies.
-# Tell Ninja that they may appear as side effects of build rules
-# otherwise ordered by order-only dependencies.
+build all: phony runeforge
 
 # =============================================================================
 # Built-in targets
@@ -88,14 +136,14 @@ build all: phony
 #############################################
 # Re-run CMake if any of its inputs changed.
 
-build build.ninja: RERUN_CMAKE | /home/click-builder/runeforge/CMakeLists.txt /usr/share/cmake-3.28/Modules/CMakeCInformation.cmake /usr/share/cmake-3.28/Modules/CMakeCXXInformation.cmake /usr/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake /usr/share/cmake-3.28/Modules/CMakeGenericSystem.cmake /usr/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake /usr/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake /usr/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake /usr/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake /usr/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake /usr/share/cmake-3.28/Modules/Compiler/GNU-C.cmake /usr/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake /usr/share/cmake-3.28/Modules/Compiler/GNU.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-GNU-C.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-GNU-CXX.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-GNU.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-Initialize.cmake /usr/share/cmake-3.28/Modules/Platform/Linux.cmake /usr/share/cmake-3.28/Modules/Platform/UnixPaths.cmake CMakeCache.txt CMakeFiles/3.28.3/CMakeCCompiler.cmake CMakeFiles/3.28.3/CMakeCXXCompiler.cmake CMakeFiles/3.28.3/CMakeSystem.cmake
+build build.ninja: RERUN_CMAKE | /home/click-builder/runeforge/CMakeLists.txt /usr/share/cmake-3.28/Modules/CMakeCXXInformation.cmake /usr/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake /usr/share/cmake-3.28/Modules/CMakeGenericSystem.cmake /usr/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake /usr/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake /usr/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake /usr/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake /usr/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake /usr/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake /usr/share/cmake-3.28/Modules/Compiler/GNU.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-GNU-CXX.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-GNU.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-Initialize.cmake /usr/share/cmake-3.28/Modules/Platform/Linux.cmake /usr/share/cmake-3.28/Modules/Platform/UnixPaths.cmake CMakeCache.txt CMakeFiles/3.28.3/CMakeCXXCompiler.cmake CMakeFiles/3.28.3/CMakeSystem.cmake
   pool = console
 
 
 #############################################
 # A missing CMake input file is not an error.
 
-build /home/click-builder/runeforge/CMakeLists.txt /usr/share/cmake-3.28/Modules/CMakeCInformation.cmake /usr/share/cmake-3.28/Modules/CMakeCXXInformation.cmake /usr/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake /usr/share/cmake-3.28/Modules/CMakeGenericSystem.cmake /usr/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake /usr/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake /usr/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake /usr/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake /usr/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake /usr/share/cmake-3.28/Modules/Compiler/GNU-C.cmake /usr/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake /usr/share/cmake-3.28/Modules/Compiler/GNU.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-GNU-C.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-GNU-CXX.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-GNU.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-Initialize.cmake /usr/share/cmake-3.28/Modules/Platform/Linux.cmake /usr/share/cmake-3.28/Modules/Platform/UnixPaths.cmake CMakeCache.txt CMakeFiles/3.28.3/CMakeCCompiler.cmake CMakeFiles/3.28.3/CMakeCXXCompiler.cmake CMakeFiles/3.28.3/CMakeSystem.cmake: phony
+build /home/click-builder/runeforge/CMakeLists.txt /usr/share/cmake-3.28/Modules/CMakeCXXInformation.cmake /usr/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake /usr/share/cmake-3.28/Modules/CMakeGenericSystem.cmake /usr/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake /usr/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake /usr/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake /usr/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake /usr/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake /usr/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake /usr/share/cmake-3.28/Modules/Compiler/GNU.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-GNU-CXX.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-GNU.cmake /usr/share/cmake-3.28/Modules/Platform/Linux-Initialize.cmake /usr/share/cmake-3.28/Modules/Platform/Linux.cmake /usr/share/cmake-3.28/Modules/Platform/UnixPaths.cmake CMakeCache.txt CMakeFiles/3.28.3/CMakeCXXCompiler.cmake CMakeFiles/3.28.3/CMakeSystem.cmake: phony
 
 
 #############################################

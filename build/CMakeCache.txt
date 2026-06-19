@@ -144,7 +144,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=Project
+CMAKE_PROJECT_NAME:STATIC=runeforge
 
 //Path to a program.
 CMAKE_RANLIB:FILEPATH=/usr/bin/ranlib
@@ -219,6 +219,15 @@ Project_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 Project_SOURCE_DIR:STATIC=/home/click-builder/runeforge
+
+//Value Computed by CMake
+runeforge_BINARY_DIR:STATIC=/home/click-builder/runeforge/build
+
+//Value Computed by CMake
+runeforge_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+runeforge_SOURCE_DIR:STATIC=/home/click-builder/runeforge
 
 
 ########################

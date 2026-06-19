@@ -1,0 +1,25 @@
+rune x = 10
+
+spell square(n):
+    unleash n * n
+
+spell greet(name):
+    print("Hello, " + name)
+
+ritual main():
+    greet("RuneForge")
+
+    rune result = square(x)
+    print(str(result))
+
+    when x > 5:
+        print("x is big")
+    orwhen x == 5:
+        print("x is five")
+    otherwise:
+        print("x is small")
+
+    rune i = 0
+    while i < 3:
+        print(str(i))
+        i = i + 1
