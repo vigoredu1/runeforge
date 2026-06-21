@@ -1,6 +1,7 @@
 #include "lexer.h"
 #include <unordered_map>
 #include <cctype>
+#include <iostream>
 
 static std::unordered_map<std::string, TokenType> keywords = {
     {"rune", TokenType::RUNE},
@@ -11,6 +12,8 @@ static std::unordered_map<std::string, TokenType> keywords = {
     {"orwhen", TokenType::ORWHEN},
     {"otherwise", TokenType::OTHERWISE},
     {"while", TokenType::WHILE},
+    {"forge", TokenType::FORGE},
+    {"in",    TokenType::IN},
     {"summon", TokenType::SUMMON},
     {"from", TokenType::FROM},
     {"blessed", TokenType::BLESSED},
@@ -83,11 +86,19 @@ void Lexer::scanToken() {
         case ')': addToken(TokenType::RPAREN); break;
         case ':': addToken(TokenType::COLON); break;
         case ',': addToken(TokenType::COMMA); break;
+        case '[': addToken(TokenType::LBRACKET); break;
+        case ']': addToken(TokenType::RBRACKET); break;
         case '=':
             addToken(match('=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL);
             break;
-        case '>': addToken(TokenType::GREATER); break;
-        case '<': addToken(TokenType::LESS); break;
+        case '!':
+            addToken(match('=') ? TokenType::NOT_EQUAL : TokenType::END_OF_FILE); // bare ! unused
+            break;
+        case '>': addToken(match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER); break;
+        case '<': addToken(match('=') ? TokenType::LESS_EQUAL    : TokenType::LESS);    break;
+        case '~':
+          while (peek() != '\n' && !isAtEnd()) advance();
+          break;
         case '"': string(); break;
         case '\n':
             addToken(TokenType::NEWLINE);
@@ -96,8 +107,14 @@ void Lexer::scanToken() {
             break;
         case ' ': case '\r': case '\t': break;
         default:
-            if (isdigit(c)) number();
-            else if (isalpha(c) || c == '_') identifier();
+          if (isdigit(c))             number();
+          else if (isalpha(c) || c == '_') identifier();
+          else {
+              hadError = true;
+              std::cerr << "[line " << line << "] Error: unexpected character '" << c << "'\n";
+          }
+          break;
+
     }
 }
 
@@ -115,8 +132,17 @@ void Lexer::string() {
         if (peek() == '\n') line++;
         advance();
     }
-    advance();
-    addToken(TokenType::STRING, source.substr(start + 1, current - start - 2));
+    if (isAtEnd()) {
+        hadError = true;
+        std::cerr << "[line " << line << "] Error: unterminated string\n";
+        return;
+    }
+    advance(); // closing "
+    std::string content = source.substr(start + 1, current - start - 2);
+    if (content.find('{') != std::string::npos)
+        addToken(TokenType::INTERP_STRING, content);
+    else
+        addToken(TokenType::STRING, content);
 }
 
 void Lexer::identifier() {

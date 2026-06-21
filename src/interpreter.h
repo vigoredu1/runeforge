@@ -66,13 +66,17 @@ private:
     void visit(BinaryExpr& e)     override;
     void visit(UnaryExpr& e)      override;
     void visit(CallExpr& e)       override;
-    void visit(AssignExpr& e)     override;
+    void visit(AssignExpr& e)             override;
+    void visit(InterpolatedStringExpr& e) override;
+    void visit(ListExpr& e)               override;
+    void visit(IndexExpr& e)              override;
 
     void visit(VarDecl& s)    override;
     void visit(FuncDecl& s)   override;
     void visit(RitualDecl& s) override;
     void visit(IfStmt& s)     override;
     void visit(WhileStmt& s)  override;
+    void visit(ForgeStmt& s)  override;
     void visit(ImportStmt& s) override;
     void visit(ReturnStmt& s) override;
     void visit(ExprStmt& s)   override;

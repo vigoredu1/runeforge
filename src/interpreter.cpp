@@ -15,6 +15,15 @@ std::string valueToString(const Value& v) {
     if (std::holds_alternative<std::string>(v)) return std::get<std::string>(v);
     if (std::holds_alternative<std::shared_ptr<RuneCallable>>(v))
         return std::get<std::shared_ptr<RuneCallable>>(v)->toString();
+    if (std::holds_alternative<std::shared_ptr<RuneList>>(v)) {
+        auto& list = std::get<std::shared_ptr<RuneList>>(v)->items;
+        std::string s = "[";
+        for (size_t i = 0; i < list.size(); i++) {
+            if (i) s += ", ";
+            s += valueToString(list[i]);
+        }
+        return s + "]";
+    }
     return "null";
 }
 
@@ -81,7 +90,7 @@ void Interpreter::defineBuiltins() {
         env->define(name, b);
     };
 
-    make_builtin("print", 1, [](std::vector<Value> args) -> Value {
+    make_builtin("cast", 1, [](std::vector<Value> args) -> Value {
         std::cout << valueToString(args[0]) << "\n";
         return std::monostate{};
     });
@@ -94,6 +103,30 @@ void Interpreter::defineBuiltins() {
         try { return std::stod(std::get<std::string>(args[0])); }
         catch (...) { return 0.0; }
     });
+
+     make_builtin("len", 1, [](std::vector<Value> args) -> Value {
+      auto& rl = std::get<std::shared_ptr<RuneList>>(args[0]);
+      return static_cast<double>(rl->items.size());
+  });
+   make_builtin("append", 2, [](std::vector<Value> args) -> Value {
+      auto& rl = std::get<std::shared_ptr<RuneList>>(args[0]);
+      rl->items.push_back(args[1]);
+      return std::monostate{};
+  });
+    make_builtin("scribe", 0, [](std::vector<Value>) -> Value {
+        std::string line;
+        std::getline(std::cin, line);
+        return line;
+    });
+
+   make_builtin("pop", 1, [](std::vector<Value> args) -> Value {
+      auto& rl = std::get<std::shared_ptr<RuneList>>(args[0]);
+      if (rl->items.empty())
+          throw std::runtime_error("pop from empty list");
+      Value last = rl->items.back();
+      rl->items.pop_back();
+      return last;
+  });
 }
 
 // ─── Core execution ───────────────────────────────────────────────────────────
@@ -164,9 +197,12 @@ void Interpreter::visit(BinaryExpr& e) {
             case TokenType::SLASH:
                 if (r == 0.0) throw std::runtime_error("[line " + std::to_string(e.line) + "] Division by zero");
                 result_ = l / r; return;
-            case TokenType::GREATER:     result_ = l > r;  return;
-            case TokenType::LESS:        result_ = l < r;  return;
-            case TokenType::EQUAL_EQUAL: result_ = l == r; return;
+            case TokenType::GREATER:       result_ = l > r;  return;
+            case TokenType::GREATER_EQUAL: result_ = l >= r; return;
+            case TokenType::LESS:          result_ = l < r;  return;
+            case TokenType::LESS_EQUAL:    result_ = l <= r; return;
+            case TokenType::EQUAL_EQUAL:   result_ = l == r; return;
+            case TokenType::NOT_EQUAL:     result_ = l != r; return;
             default: break;
         }
     }
@@ -211,6 +247,40 @@ void Interpreter::visit(AssignExpr& e) {
     result_ = val;
 }
 
+void Interpreter::visit(ListExpr& e) {
+    auto rl = std::make_shared<RuneList>();
+    for (auto& elem : e.elements)
+        rl->items.push_back(evaluate(*elem));
+    result_ = rl;
+}
+
+void Interpreter::visit(IndexExpr& e) {
+    Value obj = evaluate(*e.list);
+    Value idx = evaluate(*e.index);
+
+    if (!std::holds_alternative<std::shared_ptr<RuneList>>(obj))
+        throw std::runtime_error("[line " + std::to_string(e.line) + "] Value is not a list");
+    if (!std::holds_alternative<double>(idx))
+        throw std::runtime_error("[line " + std::to_string(e.line) + "] Index must be a number");
+
+    auto& items = std::get<std::shared_ptr<RuneList>>(obj)->items;
+    int i = static_cast<int>(std::get<double>(idx));
+    if (i < 0 || i >= static_cast<int>(items.size()))
+        throw std::runtime_error("[line " + std::to_string(e.line) + "] Index out of range");
+    result_ = items[i];
+}
+
+void Interpreter::visit(InterpolatedStringExpr& e) {
+    std::string result;
+    for (auto& seg : e.segments) {
+        if (!seg.is_expr)
+            result += seg.raw;
+        else
+            result += valueToString(evaluate(*seg.expr));
+    }
+    result_ = result;
+}
+
 // ─── Statement visitors ───────────────────────────────────────────────────────
 
 void Interpreter::visit(VarDecl& s) {
@@ -245,6 +315,19 @@ void Interpreter::visit(IfStmt& s) {
 void Interpreter::visit(WhileStmt& s) {
     while (isTruthy(evaluate(*s.condition))) {
         execute(*s.body);
+    }
+}
+
+void Interpreter::visit(ForgeStmt& s) {
+    Value listVal = evaluate(*s.list);
+    if (!std::holds_alternative<std::shared_ptr<RuneList>>(listVal))
+        throw std::runtime_error("[line " + std::to_string(s.line) + "] 'forge' requires a list");
+
+    auto& items = std::get<std::shared_ptr<RuneList>>(listVal)->items;
+    for (const Value& item : items) {
+        auto loopEnv = std::make_shared<Environment>(env);
+        loopEnv->define(s.var, item);
+        executeBlock(static_cast<Block&>(*s.body), loopEnv);
     }
 }
 

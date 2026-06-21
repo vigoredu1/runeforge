@@ -10,6 +10,7 @@ class Parser {
 public:
     explicit Parser(std::vector<Token> tokens);
     std::unique_ptr<Program> parse();
+    std::unique_ptr<Expr> expr();
 
 private:
     std::vector<Token> tokens;
@@ -32,6 +33,7 @@ private:
     std::unique_ptr<Stmt> ritualDecl();
     std::unique_ptr<Stmt> ifStmt();
     std::unique_ptr<Stmt> whileStmt();
+    std::unique_ptr<Stmt> forgeStmt();
     std::unique_ptr<Stmt> importStmt();
     std::unique_ptr<Stmt> returnStmt();
     std::unique_ptr<Stmt> exprStmt();
@@ -39,7 +41,6 @@ private:
     std::vector<std::string> params();
 
     // expressions (precedence ladder, low → high)
-    std::unique_ptr<Expr> expr();
     std::unique_ptr<Expr> orExpr();
     std::unique_ptr<Expr> andExpr();
     std::unique_ptr<Expr> notExpr();

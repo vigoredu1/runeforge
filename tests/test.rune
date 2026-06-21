@@ -4,22 +4,22 @@ spell square(n):
     unleash n * n
 
 spell greet(name):
-    print("Hello, " + name)
+    cast("Hello, " + name)
 
 ritual main():
     greet("RuneForge")
 
     rune result = square(x)
-    print(str(result))
+    cast(str(result))
 
     when x > 5:
-        print("x is big")
+        cast("x is big")
     orwhen x == 5:
-        print("x is five")
+        cast("x is five")
     otherwise:
-        print("x is small")
+        cast("x is small")
 
     rune i = 0
     while i < 3:
-        print(str(i))
+        cast(str(i))
         i = i + 1

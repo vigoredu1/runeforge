@@ -13,7 +13,11 @@ struct BinaryExpr;
 struct UnaryExpr;
 struct CallExpr;
 struct AssignExpr;
+struct InterpolatedStringExpr;
+struct ListExpr;
+struct IndexExpr;
 
+struct ForgeStmt;
 struct VarDecl;
 struct FuncDecl;
 struct RitualDecl;
@@ -35,6 +39,9 @@ struct ExprVisitor {
     virtual void visit(UnaryExpr&)      = 0;
     virtual void visit(CallExpr&)       = 0;
     virtual void visit(AssignExpr&)     = 0;
+    virtual void visit(InterpolatedStringExpr&) = 0;
+    virtual void visit(ListExpr&) = 0;
+    virtual void visit(IndexExpr&) = 0;
 };
 
 struct StmtVisitor {
@@ -44,6 +51,7 @@ struct StmtVisitor {
     virtual void visit(RitualDecl&) = 0;
     virtual void visit(IfStmt&)     = 0;
     virtual void visit(WhileStmt&)  = 0;
+    virtual void visit(ForgeStmt&)  = 0;
     virtual void visit(ImportStmt&) = 0;
     virtual void visit(ReturnStmt&) = 0;
     virtual void visit(ExprStmt&)   = 0;
@@ -73,7 +81,15 @@ struct LiteralExpr : Expr {
     TokenType   kind;   // NUMBER, STRING, BLESSED, CURSED
     void accept(ExprVisitor& v) override { v.visit(*this); }
 };
-
+struct ListExpr : Expr {
+    std::vector<std::unique_ptr<Expr>> elements;
+    void accept(ExprVisitor& v) override { v.visit(*this); }
+};
+struct IndexExpr : Expr {
+    std::unique_ptr<Expr> list;
+    std::unique_ptr<Expr> index;
+    void accept(ExprVisitor& v) override { v.visit(*this); }
+};
 // variable reference: x
 struct IdentifierExpr : Expr {
     std::string name;
@@ -108,6 +124,16 @@ struct AssignExpr : Expr {
     std::unique_ptr<Expr> value;
     void accept(ExprVisitor& v) override { v.visit(*this); }
 };
+struct StringSegment {
+      bool is_expr;           // false = raw text, true = expression
+      std::string raw;        // if !is_expr
+      std::unique_ptr<Expr> expr;  // if is_expr
+  };
+
+struct InterpolatedStringExpr : Expr {
+      std::vector<StringSegment> segments;
+      void accept(ExprVisitor& v) override { v.visit(*this); }
+  };
 
 // ─── Statements ──────────────────────────────────────────────────────────────
 
@@ -151,6 +177,14 @@ struct IfStmt : Stmt {
 // while cond: block
 struct WhileStmt : Stmt {
     std::unique_ptr<Expr> condition;
+    std::unique_ptr<Stmt> body;
+    void accept(StmtVisitor& v) override { v.visit(*this); }
+};
+
+// forge item in list: block
+struct ForgeStmt : Stmt {
+    std::string           var;   // loop variable name
+    std::unique_ptr<Expr> list;  // the iterable
     std::unique_ptr<Stmt> body;
     void accept(StmtVisitor& v) override { v.visit(*this); }
 };

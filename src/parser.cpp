@@ -1,5 +1,7 @@
 #include "parser.h"
+#include "lexer.h"
 #include <stdexcept>
+#include <iostream>
 
 Parser::Parser(std::vector<Token> tokens) : tokens(std::move(tokens)) {}
 
@@ -50,14 +52,24 @@ std::unique_ptr<Program> Parser::parse() {
 // ─── Statements ──────────────────────────────────────────────────────────────
 
 std::unique_ptr<Stmt> Parser::statement() {
-    if (check(TokenType::RUNE))      return varDecl();
-    if (check(TokenType::SPELL))     return funcDecl();
-    if (check(TokenType::RITUAL))    return ritualDecl();
-    if (check(TokenType::WHEN))      return ifStmt();
-    if (check(TokenType::WHILE))     return whileStmt();
-    if (check(TokenType::SUMMON))    return importStmt();
-    if (check(TokenType::UNLEASH))    return returnStmt();
-    return exprStmt();
+    try {
+     if (check(TokenType::RUNE))      return varDecl();
+     if (check(TokenType::SPELL))     return funcDecl();
+     if (check(TokenType::RITUAL))    return ritualDecl();
+     if (check(TokenType::WHEN))      return ifStmt();
+     if (check(TokenType::WHILE))     return whileStmt();
+     if (check(TokenType::FORGE))     return forgeStmt();
+     if (check(TokenType::SUMMON))    return importStmt();
+     if (check(TokenType::UNLEASH))    return returnStmt();
+     return exprStmt();
+    } catch (const std::runtime_error& e) {
+        std::cerr << e.what() << "\n";
+        // synchronize to the next statement
+        while (!isAtEnd() && !check(TokenType::NEWLINE)) advance();
+        if (check(TokenType::NEWLINE)) advance();
+        return nullptr;
+    }
+
 }
 
 // rune x = expr NEWLINE
@@ -164,6 +176,24 @@ std::unique_ptr<Stmt> Parser::whileStmt() {
     node->line      = ln;
     node->condition = std::move(cond);
     node->body      = block();
+    return node;
+}
+
+// forge IDENTIFIER in expr: NEWLINE block
+std::unique_ptr<Stmt> Parser::forgeStmt() {
+    int ln = peek().line;
+    consume(TokenType::FORGE, "expected 'forge'");
+    Token var = consume(TokenType::IDENTIFIER, "expected loop variable");
+    consume(TokenType::IN, "expected 'in'");
+    auto list = expr();
+    consume(TokenType::COLON, "expected ':'");
+    consume(TokenType::NEWLINE, "expected newline after 'forge'");
+
+    auto node  = std::make_unique<ForgeStmt>();
+    node->line = ln;
+    node->var  = var.lexeme;
+    node->list = std::move(list);
+    node->body = block();
     return node;
 }
 
@@ -290,7 +320,9 @@ std::unique_ptr<Expr> Parser::notExpr() {
 // comparison → addition ((== | > | <) addition)*
 std::unique_ptr<Expr> Parser::comparison() {
     auto left = addition();
-    while (check(TokenType::EQUAL_EQUAL) || check(TokenType::GREATER) || check(TokenType::LESS)) {
+    while (check(TokenType::EQUAL_EQUAL)    || check(TokenType::NOT_EQUAL)
+        || check(TokenType::GREATER)        || check(TokenType::GREATER_EQUAL)
+        || check(TokenType::LESS)           || check(TokenType::LESS_EQUAL)) {
         Token op = advance();
         auto right = addition();
         auto node = std::make_unique<BinaryExpr>();
@@ -371,6 +403,55 @@ std::unique_ptr<Expr> Parser::primary() {
         return node;
     }
 
+    // interpolated string: "Hello {name}"
+    if (check(TokenType::INTERP_STRING)) {
+        Token t = advance();
+        auto node = std::make_unique<InterpolatedStringExpr>();
+        node->line = t.line;
+
+        const std::string& content = t.lexeme;
+        size_t i = 0;
+        std::string raw_buf;
+
+        while (i < content.size()) {
+            if (content[i] == '{') {
+                if (!raw_buf.empty()) {
+                    StringSegment seg;
+                    seg.is_expr = false;
+                    seg.raw     = std::move(raw_buf);
+                    raw_buf.clear();
+                    node->segments.push_back(std::move(seg));
+                }
+                i++; // skip {
+                std::string expr_src;
+                int depth = 1;
+                while (i < content.size() && depth > 0) {
+                    if      (content[i] == '{') depth++;
+                    else if (content[i] == '}') { if (--depth == 0) break; }
+                    expr_src += content[i++];
+                }
+                if (i < content.size()) i++; // skip }
+
+                Lexer subLexer(expr_src + "\n");
+                auto subTokens = subLexer.scanTokens();
+                Parser subParser(subTokens);
+                StringSegment seg;
+                seg.is_expr = true;
+                seg.expr    = subParser.expr();
+                node->segments.push_back(std::move(seg));
+            } else {
+                raw_buf += content[i++];
+            }
+        }
+        if (!raw_buf.empty()) {
+            StringSegment seg;
+            seg.is_expr = false;
+            seg.raw     = std::move(raw_buf);
+            node->segments.push_back(std::move(seg));
+        }
+        return node;
+    }
+
     // blessed / cursed
     if (check(TokenType::BLESSED) || check(TokenType::CURSED)) {
         Token t = advance();
@@ -381,7 +462,22 @@ std::unique_ptr<Expr> Parser::primary() {
         return node;
     }
 
-    // identifier or function call
+    // list literal: [1, 2, 3]
+    if (check(TokenType::LBRACKET)) {
+        int ln = peek().line;
+        advance();
+        auto node = std::make_unique<ListExpr>();
+        node->line = ln;
+        if (!check(TokenType::RBRACKET)) {
+            node->elements.push_back(expr());
+            while (match(TokenType::COMMA))
+                node->elements.push_back(expr());
+        }
+        consume(TokenType::RBRACKET, "expected ']' after list");
+        return node;
+    }
+
+    // identifier, call, or index
     if (check(TokenType::IDENTIFIER)) {
         Token name = advance();
 
@@ -396,6 +492,8 @@ std::unique_ptr<Expr> Parser::primary() {
             return node;
         }
 
+        std::unique_ptr<Expr> result;
+
         // call: name(args)
         if (check(TokenType::LPAREN)) {
             advance();
@@ -409,19 +507,33 @@ std::unique_ptr<Expr> Parser::primary() {
 
             if (!check(TokenType::RPAREN)) {
                 call->args.push_back(expr());
-                while (match(TokenType::COMMA)) {
+                while (match(TokenType::COMMA))
                     call->args.push_back(expr());
-                }
             }
             consume(TokenType::RPAREN, "expected ')' after arguments");
-            return call;
+            result = std::move(call);
+        } else {
+            // plain identifier
+            auto node = std::make_unique<IdentifierExpr>();
+            node->line = name.line;
+            node->name = name.lexeme;
+            result = std::move(node);
         }
 
-        // plain identifier
-        auto node = std::make_unique<IdentifierExpr>();
-        node->line = name.line;
-        node->name = name.lexeme;
-        return node;
+        // postfix index: result[expr]
+        while (check(TokenType::LBRACKET)) {
+            int ln = peek().line;
+            advance();
+            auto idx = expr();
+            consume(TokenType::RBRACKET, "expected ']' after index");
+            auto inode = std::make_unique<IndexExpr>();
+            inode->line  = ln;
+            inode->list  = std::move(result);
+            inode->index = std::move(idx);
+            result = std::move(inode);
+        }
+
+        return result;
     }
 
     // grouped expression

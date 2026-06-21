@@ -9,13 +9,22 @@
 // forward declared — defined in interpreter.h
 struct RuneCallable;
 
+// forward declared so Value can hold shared_ptr<RuneList>
+struct RuneList;
+
 using Value = std::variant<
-    std::monostate,                    // null
-    double,                            // number
-    bool,                              // blessed / cursed
-    std::string,                       // string
-    std::shared_ptr<RuneCallable>      // spell / ritual
+    std::monostate,                 // null
+    double,                         // number
+    bool,                           // blessed / cursed
+    std::string,                    // string
+    std::shared_ptr<RuneCallable>,   // spell / ritual
+    std::shared_ptr<RuneList>        // list
 >;
+
+// defined after Value so it can hold vector<Value>
+struct RuneList {
+    std::vector<Value> items;
+};
 
 std::string valueToString(const Value& v);
 bool        isTruthy(const Value& v);

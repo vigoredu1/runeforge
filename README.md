@@ -10,8 +10,7 @@ A fantasy-themed programming language implemented in C++. Indentation-sensitive 
 rune x = 5
 
 spell greet(name):
-    summon from io channel print
-    print("Hello, " + name)
+    cast("Hello, " + name)
 
 ritual main():
     when x > 3:
@@ -41,6 +40,8 @@ ritual main():
 | `and`       | Logical AND                 |
 | `or`        | Logical OR                  |
 | `not`       | Logical NOT                 |
+| `unleash`   | Return value from spell     |
+| `cast`      | Print to stdout (builtin)   |
 
 ## Building
 
