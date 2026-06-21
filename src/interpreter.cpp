@@ -104,22 +104,16 @@ void Interpreter::defineBuiltins() {
         catch (...) { return 0.0; }
     });
 
-     make_builtin("len", 1, [](std::vector<Value> args) -> Value {
+     make_builtin("tally", 1, [](std::vector<Value> args) -> Value {
       auto& rl = std::get<std::shared_ptr<RuneList>>(args[0]);
       return static_cast<double>(rl->items.size());
   });
-   make_builtin("append", 2, [](std::vector<Value> args) -> Value {
+   make_builtin("conjure", 2, [](std::vector<Value> args) -> Value {
       auto& rl = std::get<std::shared_ptr<RuneList>>(args[0]);
       rl->items.push_back(args[1]);
       return std::monostate{};
   });
-    make_builtin("scribe", 0, [](std::vector<Value>) -> Value {
-        std::string line;
-        std::getline(std::cin, line);
-        return line;
-    });
-
-   make_builtin("pop", 1, [](std::vector<Value> args) -> Value {
+   make_builtin("banish", 1, [](std::vector<Value> args) -> Value {
       auto& rl = std::get<std::shared_ptr<RuneList>>(args[0]);
       if (rl->items.empty())
           throw std::runtime_error("pop from empty list");
@@ -127,6 +121,11 @@ void Interpreter::defineBuiltins() {
       rl->items.pop_back();
       return last;
   });
+      make_builtin("scribe", 0, [](std::vector<Value>) -> Value {
+        std::string line;
+        std::getline(std::cin, line);
+        return line;
+    });
 }
 
 // ─── Core execution ───────────────────────────────────────────────────────────
@@ -315,19 +314,6 @@ void Interpreter::visit(IfStmt& s) {
 void Interpreter::visit(WhileStmt& s) {
     while (isTruthy(evaluate(*s.condition))) {
         execute(*s.body);
-    }
-}
-
-void Interpreter::visit(ForgeStmt& s) {
-    Value listVal = evaluate(*s.list);
-    if (!std::holds_alternative<std::shared_ptr<RuneList>>(listVal))
-        throw std::runtime_error("[line " + std::to_string(s.line) + "] 'forge' requires a list");
-
-    auto& items = std::get<std::shared_ptr<RuneList>>(listVal)->items;
-    for (const Value& item : items) {
-        auto loopEnv = std::make_shared<Environment>(env);
-        loopEnv->define(s.var, item);
-        executeBlock(static_cast<Block&>(*s.body), loopEnv);
     }
 }
 
